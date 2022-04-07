@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Post,
@@ -53,16 +54,28 @@ export class RestaurantsController {
   async update(
     @Param('id') id: string,
     @Body() restaurant: UpdateRestaurantDto,
+    @CurrentUserDecorator() user: User,
   ): Promise<Restaurant> {
-    await this.restaurantsService.detail(id);
+    const res = await this.restaurantsService.detail(id);
+
+    if (String(res.user) !== String(user._id)) {
+      throw new ForbiddenException('You can not update this restaurant');
+    }
 
     return await this.restaurantsService.update(id, restaurant);
   }
 
   @Delete('/:id')
   @UseGuards(AuthGuard())
-  async delete(@Param('id') id: string): Promise<{ deleted: boolean }> {
+  async delete(
+    @Param('id') id: string,
+    @CurrentUserDecorator() user: User,
+  ): Promise<{ deleted: boolean }> {
     const restaurant = await this.restaurantsService.detail(id);
+
+    if (String(restaurant.user) !== String(user._id)) {
+      throw new ForbiddenException('You can not delete this restaurant');
+    }
 
     const isDeleted = await this.restaurantsService.deleteImages(
       restaurant.images,
