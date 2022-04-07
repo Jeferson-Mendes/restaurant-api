@@ -8,10 +8,16 @@ import {
   Put,
   Query,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Query as ExpressQuery } from 'express-serve-static-core';
+import { CurrentUserDecorator } from 'src/auth/decorators/current-user.decorator';
+import { Roles } from '../auth/decorators/roles.decorators';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { User } from '../auth/schemas/user.schema';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { RestaurantsService } from './restaurants.service';
@@ -27,10 +33,13 @@ export class RestaurantsController {
   }
 
   @Post()
+  @UseGuards(AuthGuard(), RolesGuard)
+  @Roles('admin')
   async createRestaurant(
+    @CurrentUserDecorator() user: User,
     @Body() restaurant: CreateRestaurantDto,
   ): Promise<Restaurant> {
-    return this.restaurantsService.create(restaurant);
+    return this.restaurantsService.create(restaurant, user);
   }
 
   @Get('/:id')
@@ -40,6 +49,7 @@ export class RestaurantsController {
   }
 
   @Put('/:id')
+  @UseGuards(AuthGuard())
   async update(
     @Param('id') id: string,
     @Body() restaurant: UpdateRestaurantDto,
@@ -50,6 +60,7 @@ export class RestaurantsController {
   }
 
   @Delete('/:id')
+  @UseGuards(AuthGuard())
   async delete(@Param('id') id: string): Promise<{ deleted: boolean }> {
     const restaurant = await this.restaurantsService.detail(id);
 
@@ -71,6 +82,7 @@ export class RestaurantsController {
   }
 
   @Put('upload/:id')
+  @UseGuards(AuthGuard())
   @UseInterceptors(FilesInterceptor('files'))
   async uploadFiles(
     @Param('id') id: string,
