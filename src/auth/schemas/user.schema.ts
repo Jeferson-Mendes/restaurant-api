@@ -6,7 +6,7 @@ export enum UserRolesEnum {
   USER = 'user',
 }
 
-@Schema()
+@Schema({ timestamps: true })
 export class User extends Document {
   @Prop()
   name: string;
