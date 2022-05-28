@@ -105,7 +105,7 @@ export class RestaurantsController {
   ): Promise<Restaurant> {
     const res = await this.restaurantsService.detail(id);
 
-    if (String(res.user) !== String(user._id)) {
+    if (String(res.user._id) !== String(user._id)) {
       throw new ForbiddenException('You can not update this restaurant');
     }
 
