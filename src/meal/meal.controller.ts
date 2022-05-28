@@ -77,7 +77,7 @@ export class MealController {
   ): Promise<Meal> {
     const meal = await this.mealService.findById(id);
 
-    if (meal.user.toString() !== user._id.toString()) {
+    if (meal.user._id.toString() !== user._id.toString()) {
       throw new ForbiddenException('You can not update this meal.');
     }
 
@@ -92,7 +92,7 @@ export class MealController {
   ): Promise<{ deleted: boolean }> {
     const meal = await this.mealService.findById(id);
 
-    if (meal.user.toString() !== user._id.toString()) {
+    if (meal.user._id.toString() !== user._id.toString()) {
       throw new ForbiddenException('You can not update this meal.');
     }
 
