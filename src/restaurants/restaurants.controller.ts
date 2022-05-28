@@ -14,6 +14,13 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Query as ExpressQuery } from 'express-serve-static-core';
 import { CurrentUserDecorator } from 'src/auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorators';
@@ -24,11 +31,20 @@ import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { RestaurantsService } from './restaurants.service';
 import { Restaurant } from './schemas/restaurant.schema';
 
+@ApiTags('restaurants')
 @Controller('restaurants')
 export class RestaurantsController {
   constructor(private restaurantsService: RestaurantsService) {}
 
   @Get()
+  @ApiQuery({ name: 'keyword', required: false })
+  @ApiQuery({ name: 'resPerPage', required: false })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiOkResponse({
+    description: 'Restaurants',
+    type: Restaurant,
+    isArray: true,
+  })
   async getAllRestaurants(@Query() query: ExpressQuery): Promise<Restaurant[]> {
     return this.restaurantsService.findAll(query);
   }
@@ -36,6 +52,12 @@ export class RestaurantsController {
   @Post()
   @UseGuards(AuthGuard(), RolesGuard)
   @Roles('admin')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Requires ADM role',
+    description: `Register a restaurant.
+      PS: Only ADMs can access this resource.`,
+  })
   async createRestaurant(
     @CurrentUserDecorator() user: User,
     @Body() restaurant: CreateRestaurantDto,
@@ -49,8 +71,32 @@ export class RestaurantsController {
     return restaurant;
   }
 
-  @Put('/:id')
+  @Get('/filter/get-by-user')
   @UseGuards(AuthGuard())
+  @ApiQuery({ name: 'keyword', required: false })
+  @ApiQuery({ name: 'resPerPage', required: false })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiOkResponse({
+    description: 'Restaurants',
+    type: Restaurant,
+    isArray: true,
+  })
+  async getRestaurantsByUser(
+    @Query() query: ExpressQuery,
+    @CurrentUserDecorator() user: User,
+  ): Promise<Restaurant[]> {
+    return await this.restaurantsService.getByUser(user, query);
+  }
+
+  @Put('/:id')
+  @UseGuards(AuthGuard(), RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Requires ADM role',
+    description: `Update a restaurant.
+      PS: Only ADMs can access this resource.`,
+  })
   async update(
     @Param('id') id: string,
     @Body() restaurant: UpdateRestaurantDto,

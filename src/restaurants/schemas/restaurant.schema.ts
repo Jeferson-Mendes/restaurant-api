@@ -2,6 +2,7 @@ import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Meal } from '../../meal/shcemas/meal.schema';
 import { User } from '../../auth/schemas/user.schema';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Schema()
 export class Location {
@@ -36,33 +37,43 @@ export enum CategoryEnum {
 @Schema({ timestamps: true })
 export class Restaurant {
   @Prop()
+  @ApiProperty()
   name: string;
 
   @Prop()
+  @ApiProperty()
   description: string;
 
   @Prop()
+  @ApiProperty()
   email: string;
 
   @Prop()
+  @ApiProperty()
   phoneNo: string;
 
   @Prop()
+  @ApiProperty()
   address: string;
 
   @Prop()
+  @ApiProperty()
   category: CategoryEnum;
 
   @Prop()
+  @ApiProperty()
   images?: object[];
 
   @Prop({ type: Object, ref: 'Location' })
+  @ApiProperty()
   location?: Location;
 
   @Prop([{ type: mongoose.Schema.Types.ObjectId, ref: 'Meal' }])
+  @ApiProperty()
   menu?: Meal[];
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  @ApiProperty()
   user: User;
 }
 

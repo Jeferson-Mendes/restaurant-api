@@ -16,31 +16,51 @@ import { CreateMealDto } from './dto/create-meal.dto';
 import { MealService } from './meal.service';
 import { Meal } from './shcemas/meal.schema';
 import { UpdateMealDto } from './dto/update-meal.dto';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('meals')
 @Controller('meals')
 export class MealController {
   constructor(private mealService: MealService) {}
 
   @Get()
   @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'Meals',
+    type: Meal,
+    isArray: true,
+  })
   async listMeals(): Promise<Meal[]> {
     return await this.mealService.list();
   }
 
   @Get('/restaurant/:restaurant_id')
   @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'Meals',
+    type: Meal,
+    isArray: true,
+  })
   async findByRestaurant(@Param('restaurant_id') id: string): Promise<Meal[]> {
     return await this.mealService.findByRestaurant(id);
   }
 
   @Get('/:id')
   @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'Meal',
+    type: Meal,
+  })
   async detail(@Param('id') id: string): Promise<Meal> {
     return await this.mealService.findById(id);
   }
 
   @Post()
   @UseGuards(AuthGuard())
+  @ApiBearerAuth()
   async createMeal(
     @CurrentUserDecorator() user: User,
     @Body() createMealDto: CreateMealDto,
