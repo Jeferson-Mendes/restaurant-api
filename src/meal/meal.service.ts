@@ -32,7 +32,10 @@ export class MealService {
     if (!isValid) {
       throw new BadRequestException('Wrong ID entered.');
     }
-    const meal = await this.mealModel.findById(id);
+    const meal = await this.mealModel
+      .findById(id)
+      .populate('restaurant')
+      .populate('user');
 
     if (!meal) {
       throw new NotFoundException('Meal not found');
@@ -87,7 +90,7 @@ export class MealService {
     // Remove from Restaurant menu
     const restaurant = await this.restaurantModel.findById(res.restaurant);
 
-    const position = restaurant.menu.indexOf(res);
+    const position = restaurant.menu.indexOf(res._id as unknown as Meal);
     restaurant.menu.splice(position, 1);
     await restaurant.save();
 

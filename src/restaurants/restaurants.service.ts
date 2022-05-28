@@ -63,13 +63,39 @@ export class RestaurantsService {
       );
     }
 
-    const restaurant = await this.restaurantModel.findById(id);
+    const restaurant = await this.restaurantModel
+      .findById(id)
+      .populate('menu')
+      .populate('user');
 
     if (!restaurant) {
       throw new NotFoundException('Restaurant not found');
     }
 
     return restaurant;
+  }
+
+  // Get restaurants by user
+  async getByUser(user: User, query: Query): Promise<Restaurant[]> {
+    const resPerPage = Number(query.resPerPage) || 10;
+    const currentPage = Number(query.page) || 1;
+    const skip = resPerPage * (currentPage - 1);
+
+    const keyword = query.keyword
+      ? {
+          name: {
+            $regex: query.keyword,
+            $options: 'i',
+          },
+        }
+      : {};
+
+    const restaurants = await this.restaurantModel
+      .find({ ...keyword, user: user._id })
+      .limit(resPerPage)
+      .skip(skip);
+
+    return restaurants;
   }
 
   // Update restaurant => PUT /restaurants/:id
