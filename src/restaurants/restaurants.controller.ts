@@ -8,12 +8,12 @@ import {
   Post,
   Put,
   Query,
-  UploadedFiles,
+  // UploadedFiles,
   UseGuards,
-  UseInterceptors,
+  // UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { FilesInterceptor } from '@nestjs/platform-express';
+// import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiOkResponse,
@@ -73,6 +73,7 @@ export class RestaurantsController {
 
   @Get('/filter/get-by-user')
   @UseGuards(AuthGuard())
+  @ApiBearerAuth()
   @ApiQuery({ name: 'keyword', required: false })
   @ApiQuery({ name: 'resPerPage', required: false })
   @ApiQuery({ name: 'page', required: false })
@@ -113,13 +114,14 @@ export class RestaurantsController {
 
   @Delete('/:id')
   @UseGuards(AuthGuard())
+  @ApiBearerAuth()
   async delete(
     @Param('id') id: string,
     @CurrentUserDecorator() user: User,
   ): Promise<{ deleted: boolean }> {
     const restaurant = await this.restaurantsService.detail(id);
 
-    if (String(restaurant.user) !== String(user._id)) {
+    if (restaurant.user._id.toString() !== user._id.toString()) {
       throw new ForbiddenException('You can not delete this restaurant');
     }
 
@@ -140,17 +142,17 @@ export class RestaurantsController {
     }
   }
 
-  @Put('upload/:id')
-  @UseGuards(AuthGuard())
-  @UseInterceptors(FilesInterceptor('files'))
-  async uploadFiles(
-    @Param('id') id: string,
-    @UploadedFiles() files: Array<Express.Multer.File>,
-  ) {
-    await this.restaurantsService.detail(id);
+  // @Put('upload/:id')
+  // @UseGuards(AuthGuard())
+  // @UseInterceptors(FilesInterceptor('files'))
+  // async uploadFiles(
+  //   @Param('id') id: string,
+  //   @UploadedFiles() files: Array<Express.Multer.File>,
+  // ) {
+  //   await this.restaurantsService.detail(id);
 
-    const res = await this.restaurantsService.uploadImages(id, files);
+  //   const res = await this.restaurantsService.uploadImages(id, files);
 
-    return res;
-  }
+  //   return res;
+  // }
 }
