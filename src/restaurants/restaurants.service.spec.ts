@@ -5,6 +5,7 @@ import { Restaurant } from './schemas/restaurant.schema';
 import { Model } from 'mongoose';
 import { UserRolesEnum } from '../auth/schemas/user.schema';
 import ApiFeatures from '../utils/apiFeatures.utils';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 const mockRestaurant = {
   _id: '624f2fdd9a7a4275d7a62100',
@@ -24,14 +25,53 @@ const mockRestaurant = {
     zipcode: '22554-7763',
     country: 'US',
   },
-  user: '624c477a809532935c1c217c',
-  __v: 6,
+  user: {
+    _id: '624c477a809532935c1c217c',
+    name: 'Jeff',
+    email: 'jeff7@email.com',
+    role: 'user',
+    __v: 0,
+  },
+  __v: 16,
   menu: [
-    '62920ef546aa2a41e5c6a5a4',
-    '62920ef946aa2a41e5c6a5aa',
-    '62920efd46aa2a41e5c6a5af',
+    {
+      _id: '62921073d635cdcf9c0ae944',
+      name: 'Pasta',
+      description: 'Delicious pasta description',
+      price: 10,
+      category: 'Pasta',
+      restaurant: '624f2fdd9a7a4275d7a62100',
+      user: '624c477a809532935c1c217c',
+      createdAt: '2022-05-28T12:07:15.697Z',
+      updatedAt: '2022-05-28T12:07:15.697Z',
+      __v: 0,
+    },
+    {
+      _id: '62921076d635cdcf9c0ae94a',
+      name: 'Pasta 2',
+      description: 'Delicious pasta description',
+      price: 10,
+      category: 'Pasta',
+      restaurant: '624f2fdd9a7a4275d7a62100',
+      user: '624c477a809532935c1c217c',
+      createdAt: '2022-05-28T12:07:18.916Z',
+      updatedAt: '2022-05-28T12:07:18.916Z',
+      __v: 0,
+    },
+    {
+      _id: '6292107cd635cdcf9c0ae954',
+      name: 'Pasta 4',
+      description: 'Delicious pasta description',
+      price: 10,
+      category: 'Pasta',
+      restaurant: '624f2fdd9a7a4275d7a62100',
+      user: '624c477a809532935c1c217c',
+      createdAt: '2022-05-28T12:07:24.665Z',
+      updatedAt: '2022-05-28T12:07:24.665Z',
+      __v: 0,
+    },
   ],
-  updatedAt: '2022-05-28T12:01:01.527Z',
+  updatedAt: '2022-05-28T12:07:53.180Z',
 };
 
 const mockUser = {
@@ -45,6 +85,7 @@ const mockRestaurantService = {
   find: jest.fn(),
   create: jest.fn(),
   findById: jest.fn(),
+  findByIdAndUpdate: jest.fn(),
 };
 
 describe('RestaurantService', () => {
@@ -112,6 +153,62 @@ describe('RestaurantService', () => {
         mockUser as any,
       );
       expect(result).toEqual(mockRestaurant);
+    });
+  });
+
+  describe('findById', () => {
+    it('should get restaurant by Id', async () => {
+      jest.spyOn(restaurantModel, 'findById').mockImplementationOnce(
+        () =>
+          ({
+            populate: () => ({
+              populate: jest.fn().mockResolvedValueOnce(mockRestaurant),
+            }),
+          } as any),
+      );
+
+      const restaurant = await service.detail(mockRestaurant._id);
+      expect(restaurant).toEqual(mockRestaurant);
+    });
+
+    it('should throw wrong mongoose id error', async () => {
+      await expect(service.detail('wrongId')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw restaurant not found exception.', async () => {
+      const mockError = new NotFoundException('Restaurant not found');
+      jest.spyOn(restaurantModel, 'findById').mockImplementationOnce(
+        () =>
+          ({
+            populate: () => ({
+              populate: jest.fn().mockRejectedValue(mockError),
+            }),
+          } as any),
+      );
+
+      await expect(service.detail(mockRestaurant._id)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('findByIdAndUpdate', () => {
+    it('should update the restaurant', async () => {
+      const restaurant = { ...mockRestaurant, name: 'Updated name' };
+      const updateRestaurant = { name: 'Updated name' };
+
+      jest
+        .spyOn(restaurantModel, 'findByIdAndUpdate')
+        .mockResolvedValueOnce(restaurant as any);
+
+      const updatedRestaurant = await service.update(
+        restaurant._id,
+        updateRestaurant.name as any,
+      );
+
+      expect(updatedRestaurant.name).toEqual(updateRestaurant.name);
     });
   });
 });
