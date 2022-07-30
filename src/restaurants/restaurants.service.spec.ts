@@ -86,6 +86,7 @@ const mockRestaurantService = {
   create: jest.fn(),
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
+  findByIdAndDelete: jest.fn(),
 };
 
 describe('RestaurantService', () => {
@@ -209,6 +210,71 @@ describe('RestaurantService', () => {
       );
 
       expect(updatedRestaurant.name).toEqual(updateRestaurant.name);
+    });
+  });
+
+  describe('findByIdAndDelete', () => {
+    it('should delete the restaurant', async () => {
+      jest
+        .spyOn(restaurantModel, 'findByIdAndDelete')
+        .mockResolvedValueOnce(mockRestaurant as any);
+
+      const result = await service.delete(mockRestaurant._id);
+
+      expect(result).toEqual(mockRestaurant);
+    });
+  });
+
+  describe('uploadImages', () => {
+    it('should upload restaurant images on S3 Bucket', async () => {
+      const mockImages = [
+        {
+          ETag: 'etag',
+          Location: 'https://api-bucket-location',
+          Key: 'key',
+          Bucket: 'bucket-name',
+        },
+      ];
+
+      const updatedRestaurant = { ...mockRestaurant, images: mockImages };
+
+      jest.spyOn(ApiFeatures, 'upload').mockResolvedValueOnce(mockImages);
+
+      jest
+        .spyOn(restaurantModel, 'findByIdAndUpdate')
+        .mockResolvedValueOnce(updatedRestaurant as any);
+
+      const files = [
+        {
+          fieldname: 'files',
+          originalname: 'image.jpeg',
+          encoding: '7bit',
+          mimetype: 'image/jpeg',
+          buffer: 'buffer',
+          size: 19128,
+        },
+      ];
+
+      const result = await service.uploadImages(mockRestaurant._id, files);
+      expect(result).toEqual(updatedRestaurant);
+    });
+  });
+
+  describe('deleteImages', () => {
+    it('should delete restaurant images from S3 Bucket', async () => {
+      const mockImages = [
+        {
+          ETag: 'etag',
+          Location: 'https://api-bucket-location',
+          Key: 'key',
+          Bucket: 'bucket-name',
+        },
+      ];
+
+      jest.spyOn(ApiFeatures, 'deleteImages').mockResolvedValueOnce(true);
+
+      const result = await service.deleteImages(mockImages);
+      expect(result).toBe(true);
     });
   });
 });
