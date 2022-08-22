@@ -22,7 +22,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Query as ExpressQuery } from 'express-serve-static-core';
-import { CurrentUserDecorator } from 'src/auth/decorators/current-user.decorator';
+import { CurrentUserDecorator } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorators';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { User } from '../auth/schemas/user.schema';
