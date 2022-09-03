@@ -29,5 +29,5 @@ export class SignUpDto {
   @IsOptional()
   @IsEnum(UserRolesEnum, { message: 'Pleace, enter a correct enum value.' })
   @ApiProperty({ enum: UserRolesEnum })
-  readonly role: UserRolesEnum;
+  readonly role?: UserRolesEnum;
 }
